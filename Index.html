@@ -168,9 +168,6 @@
   <div class="banner fade-in">
     <img src="https://raw.githubusercontent.com/SimSans/Ember/main/assets/Ember_Banner.png" alt="EMBER Banner">
   </div>
-  <div style="text-align: center; margin: 2em auto; color: #ff5555; font-weight: bold;">
-  🚧 Wallet and Presale functions are temporarily disabled. Presale is scheduled for <u>July 1st, 2025</u>.
-  </div>
   <div class="container fade-in">
     <h1>EMBER Presale</h1>
     <p><em>"You don’t have to rise like a hero. You just have to rise."</em></p>
@@ -188,7 +185,7 @@
       3. You're done!
     </p>
     <p style="margin-top: 1rem; font-size: 1.1rem; text-align: left;">
-      🔥 <strong>EMBR Sold So Far:</strong> 0 / 100,000,000 (updated hourly)
+      🔥 <strong>EMBR Sold:</strong> <span id="soldNow">0</span> / 100,000,000
     </p>
     <div class="options">
       <div class="option">
@@ -208,18 +205,28 @@
     </p>
   </div>
  <div id="countdown" style="text-align: center; font-size: 1.1rem; color: #ff7133; margin-top: 1rem;">⏳ Countdown loading...</div>
- <button id="connectButton" disabled style="opacity: 0.5; cursor: not-allowed;">
-  Wallet Connect (Disabled Until Launch)
-</button>
+<div id="connect-wrap" style="text-align:center; margin-top:2rem;">
+  <button id="connectButton" onclick="connect()" class="btn">
+    Connect Wallet
+  </button>
+</div>
  <div id="status" style="text-align: center; font-size: 1rem; color: #ccc;"></div>
- <div id="presale-ui" style="display: none; text-align: center; margin-top: 2rem;">
-  <input type="number" id="ethAmount" placeholder="ETH amount" style="padding: 0.5rem; font-size: 1rem; border-radius: 6px; border: 1px solid #ccc; margin-bottom: 1rem; width: 80%; max-width: 300px;" />
-  <div class="options" style="align-items: center;">
+<div id="presale-ui"
+     style="display:none; text-align:center; margin-top:2rem;">
+   <input type="number" id="ethAmount" placeholder="ETH amount" />
+ <p id="calcHint" style="margin:0.5rem 0 1rem; font-size:1rem; color:#ff7133;">
+
+ </p>
+  <div class="options" style="align-items:center;">
     <button class="btn" onclick="buyInstant()">Buy Instantly</button>
     <button class="btn" onclick="buyVested()">Buy Vested (+15%)</button>
   </div>
-  <button class="btn" id="claimBtn" onclick="claimTokens()" style="display: none; margin-top: 2rem;">Claim Vested</button>
-  </div>
+  <button class="btn" id="claimBtn" onclick="claimTokens()"
+          style="display:none; margin-top:2rem;">
+    Claim Vested
+  </button>
+</div>
+
   <footer class="fade-in">
     <h2>🧠 Why EMBER?</h2>
     <p>EMBER was born from the belief that crypto shouldn’t just be about charts — but about people. Those who stay through the fire. Those who don’t give up. EMBER is for them.</p>
@@ -305,9 +312,9 @@ async function connect() {
     ], provider);
 
     updateStatus("✅ Connected successfully.");
-    document.getElementById("connectBtn").style.display = "none";
+    document.getElementById("connect-wrap").style.display = "none";
     document.getElementById("presale-ui").style.display = "block";
-    updateTracker();
+    refreshSold();
   } catch (e) {
     console.error("Connection failed:", e);
     updateStatus("Connection failed: " + (e?.message || e));
@@ -358,4 +365,48 @@ function updateTracker() {
   if (tracker) tracker.innerText = "📊 EMBR Sold Tracker: Coming soon...";
 }
 updateCountdown();
+</script>
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  const RATE  = 1000000;   // 1 ETH = 1 000 000 EMBR
+  const BONUS = 0.15;      // +15 % for vested
+
+  const ethField  = document.getElementById('ethAmount');
+  const calcHint  = document.getElementById('calcHint');
+
+  ethField.addEventListener('input', () => {
+    const eth = parseFloat(ethField.value);
+    if (!eth || eth <= 0) { calcHint.textContent = ''; return; }
+
+    const instant = eth * RATE;
+    const vested  = instant * (1 + BONUS);
+
+    calcHint.innerHTML =
+      `Instant ⇒ <strong>${instant.toLocaleString()}</strong> EMBR&nbsp;&nbsp;|&nbsp;&nbsp;` +
+      `Vested (+15%) ⇒ <strong>${vested.toLocaleString()}</strong> EMBR`;
+  });
+});
+</script>
+<script>
+/* ---------- LIVE “EMBR sold” tracker ---------- */
+const SOLD_RPC  = "https://mainnet.base.org";     // Base main-net public RPC
+const soldProv  = new ethers.JsonRpcProvider(SOLD_RPC);
+const soldAbi   = ["function totalSold() view returns (uint256)"];
+const soldCtr   = new ethers.Contract(PRESALE_ADDRESS, soldAbi, soldProv);
+const soldSpan  = document.getElementById("soldNow");
+
+async function refreshSold () {
+  try {
+    const raw   = await soldCtr.totalSold();          // uint256
+    const sold  = parseFloat(ethers.formatUnits(raw, 18));
+    soldSpan.textContent = sold.toLocaleString();
+  } catch (err) {
+    console.error("Sold-tracker error:", err);
+    soldSpan.textContent = "—";
+  }
+}
+
+/* initial fetch + auto-refresh every 60 s */
+refreshSold();
+setInterval(refreshSold, 60_000);
 </script>
