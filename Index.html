@@ -215,17 +215,31 @@
       ✅ Presale is fully on-chain. Send ETH, select your tier, and you're done.
     </p>
   </div>
- <div id="countdown" style="text-align: center; font-size: 1.1rem; color: #ff7133; margin-top: 1rem;">⏳ Countdown loading...</div>
- <div id="status" style="text-align: center; font-size: 1rem; color: #ccc;"></div>
-<div id="presale-ui"
-     style="display:none; text-align:center; margin-top:2rem;">
-<div id="connect-wrap" style="text-align:center; margin-top:2rem;">
+ <!-- Countdown -->
+<div id="countdown">⏳ Countdown loading…</div>
+<div id="status" style="text-align:center;font-size:1rem;color:#ccc;"></div>
+
+<!-- 1️⃣  CONNECT  -->
+<div id="connect-wrap" style="text-align:center;margin-top:2rem;">
   <button id="connectButton-browser" class="btn">Browser Wallet</button>
   <button id="connectButton-wc"      class="btn">WalletConnect</button>
 </div>
-   <input type="number" id="ethAmount" placeholder="ETH amount" />
- <p id="calcHint" style="margin:0.5rem 0 1rem; font-size:1rem; color:#ff7133;">
-<div id="connect-wrap" style="text-align:center; margin-top:2rem;">
+
+<!-- 2️⃣  PRESALE UI (hidden until connected) -->
+<div id="presale-ui" style="display:none;text-align:center;margin-top:2rem;">
+  <input type="number" id="ethAmount" placeholder="ETH amount" />
+  <p id="calcHint" style="margin:0.5rem 0 1rem;font-size:1rem;color:#ff7133;"></p>
+
+  <div class="options" style="align-items:center;">
+    <button class="btn" onclick="buyInstant()">Buy Instant</button>
+    <button class="btn" onclick="buyVested()">Buy Vested (+15%)</button>
+  </div>
+
+  <button class="btn" id="claimBtn" onclick="claimTokens()"
+          style="display:none;margin-top:2rem;">
+    Claim Vested
+  </button>
+</div>
 
  </p>
   <div class="options" style="align-items:center;">
