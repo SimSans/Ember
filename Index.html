@@ -317,6 +317,7 @@ async function connect() {
       chains: [8453],                // Base Mainnet
       showQrModal: true
     });
+    await wcProv.connect();
 
     provider = new ethers.BrowserProvider(wcProv);
     signer   = await provider.getSigner();
