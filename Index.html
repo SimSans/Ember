@@ -302,7 +302,7 @@ function updateCountdown() {
 async function connect() {
   try {
     /*  WalletConnect v2  */
-    const wcProv = await window.EthereumProvider.init({   // ← change here
+ const wcProv = await window.WalletConnectEthereumProvider.init({   // ← change here
       projectId: "44f1b2ac5c89b529e5451a32217af2e4",
       chains:   [8453],          // Base
       showQrModal: true
