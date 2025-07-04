@@ -6,6 +6,25 @@
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.6.2/dist/ethers.umd.min.js"></script>
 
 
+<script type="module">
+  import { EthereumProvider } from "https://esm.sh/@walletconnect/ethereum-provider@2.12.0";
+  import { Web3Modal } from "https://esm.sh/@web3modal/html@2.6.3";
+
+  const provider = await EthereumProvider.init({
+    projectId: "44f1b2ac5c89b529e5451a32217af2e4",
+    chains: [8453],
+    showQrModal: false
+  });
+
+  const modal = new Web3Modal({
+    projectId: "44f1b2ac5c89b529e5451a32217af2e4",
+    chains: [8453],
+    themeMode: "dark"
+  });
+
+  window.walletProvider = provider;
+  window.walletModal = modal;
+</script>
 
 
 
@@ -453,4 +472,11 @@ async function refreshSold () {
 /* initial fetch + auto-refresh every 60 s */
 refreshSold();
 setInterval(refreshSold, 60_000);
+</script>
+<script>
+  document.getElementById("connectButton").onclick = async () => {
+    await window.walletModal.openModal();
+    await window.walletProvider.connect();
+    alert("✅ Wallet connected!");
+  };
 </script>
