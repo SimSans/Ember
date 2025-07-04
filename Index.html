@@ -329,7 +329,6 @@ async function connect() {
   }
 }
 
-
 /* 2. BUY INSTANT / VESTED  */
 async function buyInstant() {
   const amount = document.getElementById("ethAmount").value;
@@ -403,6 +402,18 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 });
 </script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const wctype = typeof window.WalletConnectEthereumProvider;
+    // quick visual feedback:
+    document.body.insertAdjacentHTML(
+      "afterbegin",
+      `<div style="position:fixed;top:4px;left:4px;font:12px/14px monospace;`+
+      `background:#222;color:#0f0;padding:2px 4px;z-index:9999;">WC = ${wctype}</div>`
+    );
+  });
+</script>
+
 <script>
 /* ---------- LIVE “EMBR sold” tracker ---------- */
 const SOLD_RPC  = "https://mainnet.base.org";     // Base main-net public RPC
