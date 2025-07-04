@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
+   <script src="https://unpkg.com/@walletconnect/core@2.13.3/dist/umd/index.js"></script>
+   <script src="https://unpkg.com/@reown/walletkit@1.0.10/dist/index.umd.js"></script>
+
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -296,36 +297,44 @@ function updateCountdown() {
   setTimeout(updateCountdown, 1000);
 }
 
-async function connect() {
+async function connect () {
   try {
-    if (window.ethereum) {
-      provider = new ethers.BrowserProvider(window.ethereum);
-      await window.ethereum.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId: "0x2105" }],            // Base main-net
-      });
-      await provider.send("eth_requestAccounts", []);
-    } else {
-      /* fallback: WalletConnect */
-      const wcProv = new WalletConnectProvider.default({
-        rpc: { 8453: "https://mainnet.base.org" },
-        chainId: 8453,
-        qrcodeModalOptions: {
-          mobileLinks: ["metamask","trust","rabby","coinbase","rainbow"]
-        }
-      });
-      await wcProv.enable();
-      provider = new ethers.BrowserProvider(wcProv);
-    }
+    /* 1. Build a WC core instance (projectId from walletconnect cloud) */
+    const core     = new window.WalletConnectCore.Core({
+      projectId: "44f1b2ac5c89b529e5451a32217af2e4"   // ← your ID
+    });
 
-    signer  = await provider.getSigner();
-    presale = new ethers.Contract(PRESALE_ADDRESS, [
+    /* 2. App metadata (shown inside wallets) */
+    const metadata = {
+      name:        "EMBER",
+      description: "EMBER Presale",
+      url:         "https://embertoken.xyz",            // must match site
+      icons:       ["https://raw.githubusercontent.com/SimSans/Ember/main/assets/Ember_Logo.png"]
+    };
+
+    /* 3. Initialise WalletKit (opens QR / deep-link) */
+    const walletKit = await window.WalletKit.WalletKit.init({
+      core,
+      metadata,
+      chains:  [8453],                                  // Base main-net
+      methods: ["eth_sendTransaction","eth_sign","personal_sign"],
+      showQrModal: true
+    });
+
+    /* 4. Fetch an EIP-1193 provider from WalletKit */
+    const wcProvider = await walletKit.getProvider();    // same as window.ethereum
+
+    /* 5. Wrap it in ethers.js so your contract code still works */
+    provider = new ethers.BrowserProvider(wcProvider);
+    signer   = await provider.getSigner();
+
+    presale  = new ethers.Contract(PRESALE_ADDRESS, [
       "function buyInstant() payable",
       "function buyVested() payable",
       "function claim()"
     ], signer);
 
-    embr    = new ethers.Contract(TOKEN_ADDRESS, [
+    embr     = new ethers.Contract(TOKEN_ADDRESS, [
       "function balanceOf(address) view returns (uint256)"
     ], provider);
 
@@ -333,8 +342,9 @@ async function connect() {
     document.getElementById("connect-wrap").style.display = "none";
     document.getElementById("presale-ui").style.display   = "block";
     refreshSold();
+
   } catch (err) {
-    console.error("Connection failed:", err);
+    console.error("WalletConnect v2 failed:", err);
     updateStatus("❌ " + (err?.message || err));
   }
 }
@@ -433,5 +443,7 @@ async function refreshSold () {
 
 /* initial fetch + auto-refresh every 60 s */
 refreshSold();
+setInterval(refreshSold, 60_000);
+</script>
 setInterval(refreshSold, 60_000);
 </script>
