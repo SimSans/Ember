@@ -180,6 +180,29 @@
 
   </style>
  <script src="https://cdn.jsdelivr.net/npm/ethers@6.6.2/dist/ethers.umd.min.js"></script>
+  <!-- WalletConnect provider + Web3Modal (module) -->
+<script type="module">
+  import { EthereumProvider } from "https://esm.sh/@walletconnect/ethereum-provider@2.12.0";
+  import { Web3Modal        } from "https://esm.sh/@web3modal/html@2/dist/web3modal-html.js";
+
+  // initialise the WC provider
+  const wcProvider = await EthereumProvider.init({
+    projectId: "44f1b2ac5c89b529e5451a32217af2e4",
+    chains:    [8453],      // Base main-net
+    showQrModal: false      // Web3Modal handles UI
+  });
+
+  // create a polished modal
+  const wcModal = new Web3Modal({
+    projectId: "44f1b2ac5c89b529e5451a32217af2e4",
+    chains:    [8453],
+    themeMode: "dark"
+  });
+
+  // expose so other scripts can use them
+  window.walletProvider = wcProvider;
+  window.walletModal    = wcModal;
+</script>
 </head>
 <body>
   <div class="navbar">
