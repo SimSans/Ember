@@ -3,11 +3,7 @@
 <head>
 
 <!-- WalletConnect v2 – ESM build → promoted to global -->
-<script type="module">
-  import EthereumProvider from "https://unpkg.com/@walletconnect/ethereum-provider@2.12.0/dist/index.js";
-  // expose it so the rest of your code can call .init()
-  window.WalletConnectEthereumProvider = EthereumProvider;
-</script>
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.6.2/dist/ethers.umd.min.js"></script>
 
 
 
@@ -307,32 +303,33 @@ function updateCountdown() {
 
 async function connect() {
   try {
-    /* --- dynamically load WC-v2 ESM if not present --- */
+    /* 1 ▸ lazy-load WC v2 ESM (CORS-friendly CDN) */
     if (!window.WalletConnectEthereumProvider) {
       const mod = await import(
-        "https://unpkg.com/@walletconnect/ethereum-provider@2.12.0/dist/index.js"
+        "https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2.12.0/dist/index.js"
       );
-      // some CDNs export default, some named; cover both:
       window.WalletConnectEthereumProvider =
-        mod?.default || mod.WalletConnectEthereumProvider || mod.EthereumProvider || mod;
+        mod.default || mod.WalletConnectEthereumProvider || mod;
     }
 
-    /* now safe to call .init() */
+    /* 2 ▸ initialise provider */
     const wcProv = await window.WalletConnectEthereumProvider.init({
-      projectId: "44f1b2ac5c89b529e5451a32217af2e4",
-      chains: [8453],           // Base
+      projectId: "44f1b2ac5c89b529e5451a32217af2e4",  // ← your ID
+      chains:   [8453],                                // Base
       showQrModal: true
     });
 
-    /* wrap in ethers */
-    provider = new ethers.BrowserProvider(wcProv);
-    signer   = await provider.getSigner();
+    /* 3 ▸ wrap in ethers and continue exactly as before */
+    const provider = new ethers.BrowserProvider(wcProv);
+    const signer   = await provider.getSigner();
 
-    presale  = new ethers.Contract(PRESALE_ADDRESS, [
-      "function buyInstant() payable",
-      "function buyVested() payable",
-      "function claim()"
-    ], signer);
+    presale = new ethers.Contract(
+      "0x5Cc848D9BB8ecc5Aa890C9C57562154589dccED4",
+      ["function buyInstant() payable",
+       "function buyVested() payable",
+       "function claim()"],
+      signer
+    );
 
     updateStatus("✅ Connected: " + await signer.getAddress());
     document.getElementById("connect-wrap").style.display = "none";
@@ -344,7 +341,7 @@ async function connect() {
     updateStatus("❌ " + (err?.message || err));
   }
 }
-
+   
 /* 2. BUY INSTANT / VESTED  */
 async function buyInstant() {
   const amount = document.getElementById("ethAmount").value;
