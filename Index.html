@@ -307,10 +307,20 @@ function updateCountdown() {
 
 async function connect() {
   try {
-    /*  WalletConnect v2  */
- const wcProv = await window.WalletConnectEthereumProvider.init({   // ← change here
+    /* --- dynamically load WC-v2 ESM if not present --- */
+    if (!window.WalletConnectEthereumProvider) {
+      const mod = await import(
+        "https://unpkg.com/@walletconnect/ethereum-provider@2.12.0/dist/index.js"
+      );
+      // some CDNs export default, some named; cover both:
+      window.WalletConnectEthereumProvider =
+        mod?.default || mod.WalletConnectEthereumProvider || mod.EthereumProvider || mod;
+    }
+
+    /* now safe to call .init() */
+    const wcProv = await window.WalletConnectEthereumProvider.init({
       projectId: "44f1b2ac5c89b529e5451a32217af2e4",
-      chains:   [8453],          // Base
+      chains: [8453],           // Base
       showQrModal: true
     });
 
