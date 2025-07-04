@@ -266,140 +266,122 @@
       “Real fire never fears the storm. You are not alone — rise with us.”
     </p>
   </footer>
- <script>
+ <!-- ========= MAIN DAPP SCRIPT ========= -->
+<script>
+/* ---------- constants ---------- */
 const PRESALE_ADDRESS = "0x5Cc848D9BB8ecc5Aa890C9C57562154589dccED4";
-const TOKEN_ADDRESS = "0xCe4eEc09fD89359a542035A60F38d9d23FdFbc19";
-let signer, presale, embr, provider;
+const SALE_ABI = [
+  "function buyInstant() payable",
+  "function buyVested() payable",
+  "function claim()",
+  "function totalSold() view returns (uint256)"
+];
 
-const claimStartTime = new Date("2025-07-06T12:00:00Z").getTime();
-const countdownEl = document.getElementById("countdown");
+let provider, signer, presale;
 
-function updateCountdown() {
-  const now = new Date().getTime();
-  const distance = claimStartTime - now;
-  const countdownEl = document.getElementById("countdown");
+/* ---------- shared helpers ---------- */
+const statusEl   = document.getElementById("status");
+const soldSpan   = document.getElementById("soldNow");
+const connectUI  = document.getElementById("connect-wrap");
+const presaleUI  = document.getElementById("presale-ui");
 
-  if (!countdownEl) return;
+const setStatus  = (txt, ok=true) => {
+  statusEl.textContent = txt;
+  statusEl.style.color = ok ? "#00ff99" : "#ff6666";
+};
 
-  if (distance <= 0) {
-    countdownEl.innerHTML = `<span style="color: #00ff99;">🚀 Claim Phase is now <strong>LIVE</strong>!</span>`;
+/* ---------- injected-wallet connect ---------- */
+async function connectBrowser() {
+  if (!window.ethereum) return setStatus("❌ No injected wallet found", false);
+  try {
+    await window.ethereum.request({ method: "eth_requestAccounts" });
+    provider = new ethers.BrowserProvider(window.ethereum);
+    signer   = await provider.getSigner();
 
-    const presaleUI = document.getElementById("presale-ui");
-    if (presaleUI) {
-      // Hide or remove buy section without deleting the whole element
-      presaleUI.innerHTML = `
-        <button class="btn" id="claimBtn" onclick="claimTokens()" style="margin-top: 2rem;">Claim Vested</button>
-      `;
-    }
-
-    return;
-  }
-
-  const d = Math.floor(distance / (1000 * 60 * 60 * 24));
-  const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-  const s = Math.floor((distance % (1000 * 60)) / 1000);
-
-  countdownEl.innerHTML = `🔥 <strong>Presale is LIVE for:</strong> ${d}d ${h}h ${m}m ${s}s`;
-  setTimeout(updateCountdown, 1000);
+    await ensureBase();               // switch/check network
+    initPresale();
+  } catch (err) { setStatus("❌ " + err.message, false); }
 }
 
-async function connect() {
+/* ---------- wallet-connect connect ---------- */
+async function connectWalletConnect() {
   try {
     const wcProv = await WalletConnectEthereumProvider.init({
-      projectId: "44f1b2ac5c89b529e5451a32217af2e4",
-      chains: [8453],          // Base
+      projectId : "44f1b2ac5c89b529e5451a32217af2e4",
+      chains    : [8453],      // Base
       showQrModal: true
     });
     await wcProv.connect();
 
-    const provider = new ethers.BrowserProvider(wcProv);
-    signer  = await provider.getSigner();
-    presale = new ethers.Contract(
-      PRESALE_ADDRESS,
-      ["function buyInstant() payable",
-       "function buyVested() payable",
-       "function claim()"],
-      signer
-    );
+    provider = new ethers.BrowserProvider(wcProv);
+    signer   = await provider.getSigner();
+    initPresale();
+  } catch (err) { setStatus("❌ " + err.message, false); }
+}
 
-    updateStatus("✅ Connected: " + await signer.getAddress());
-    document.getElementById("connect-wrap").style.display = "none";
-    document.getElementById("presale-ui").style.display   = "block";
-  } catch (err) {
-    console.error(err);
-    updateStatus("❌ " + (err?.message || err));
+/* ---------- once connected ---------- */
+async function initPresale() {
+  presale = new ethers.Contract(PRESALE_ADDRESS, SALE_ABI, signer);
+  setStatus("✅ Connected: " + await signer.getAddress());
+  connectUI.style.display = "none";
+  presaleUI.style.display = "block";
+}
+
+/* ---------- buy / claim ---------- */
+async function buy(kind) {
+  const amt = parseFloat(document.getElementById("ethAmount").value);
+  if (!amt) return alert("Enter ETH amount");
+  try {
+    const fn = kind === "instant" ? presale.buyInstant : presale.buyVested;
+    const tx = await fn({ value: ethers.parseEther(String(amt)) });
+    await tx.wait();
+    alert("✅ Purchase successful");
+  } catch (e) { alert("❌ " + e.message); }
+}
+const buyInstant = () => buy("instant");
+const buyVested  = () => buy("vested");
+async function claimTokens() {
+  try { const tx = await presale.claim(); await tx.wait(); alert("✅ Claimed"); }
+  catch (e) { alert("❌ " + e.message); }
+}
+
+/* ---------- network guard ---------- */
+async function ensureBase() {
+  const { chainId } = await provider.getNetwork();
+  if (Number(chainId) !== 8453) {
+    throw new Error("Please switch to Base mainnet");
   }
 }
 
-
-/* ------------  BUY FUNCTIONS  ------------ */
-async function buyInstant() {
-  const amt = document.getElementById("ethAmount").value;
-  if (!amt || isNaN(amt)) return alert("Enter a valid ETH amount");
+/* ---------- sold tracker ---------- */
+async function refreshSold() {
   try {
-    const tx = await presale.buyInstant({ value: ethers.parseEther(amt) });
-    await tx.wait();
-    alert("✅ Purchase successful (Instant)");
-  } catch (e) { alert("❌ Tx failed: " + (e?.message || e)); }
+    const raw  = await presale.totalSold();
+    const sold = parseFloat(ethers.formatUnits(raw, 18));
+    soldSpan.textContent = sold.toLocaleString();
+  } catch { soldSpan.textContent = "—"; }
 }
 
-async function buyVested() {
-  const amt = document.getElementById("ethAmount").value;
-  if (!amt || isNaN(amt)) return alert("Enter a valid ETH amount");
-  try {
-    const tx = await presale.buyVested({ value: ethers.parseEther(amt) });
-    await tx.wait();
-    alert("✅ Purchase successful (Vested)");
-  } catch (e) { alert("❌ Tx failed: " + (e?.message || e)); }
-}
-
-async function claimTokens() {
-  try {
-    const tx = await presale.claim();
-    await tx.wait();
-    alert("✅ Claim successful");
-  } catch (e) { alert("❌ Claim failed: " + (e?.message || e)); }
-}
-
-/* ------------  UI HELPERS  ------------ */
-function updateStatus(msg) {
-  const el = document.getElementById("status");
-  if (el) el.innerText = msg;
-}
-
-/* ------------  COUNTDOWN  ------------ */
-const claimStart = new Date("2025-07-06T12:00:00Z").getTime();
-const cdEl = document.getElementById("countdown");
-function updateCountdown() {
+/* ---------- countdown ---------- */
+const claimStart = Date.parse("2025-07-06T12:00:00Z");
+function tick() {
   const now = Date.now(), d = claimStart - now;
-  if (d <= 0) { cdEl.innerHTML = "🚀 Claim phase LIVE"; return; }
-  const dd = Math.floor(d/864e5),
-        hh = Math.floor(d/36e5)%24,
-        mm = Math.floor(d/6e4)%60,
-        ss = Math.floor(d/1e3)%60;
-  cdEl.innerHTML = `🔥 Presale LIVE for: ${dd}d ${hh}h ${mm}m ${ss}s`;
-  setTimeout(updateCountdown, 1000);
+  if (d <= 0) { countdown.textContent = "🚀 Claim LIVE"; return; }
+  const dd=Math.floor(d/864e5),hh=Math.floor(d/36e5)%24,
+        mm=Math.floor(d/6e4)%60, ss=Math.floor(d/1e3)%60;
+  countdown.textContent = `🔥 Presale LIVE for: ${dd}d ${hh}h ${mm}m ${ss}s`;
+  setTimeout(tick,1e3);
 }
-updateCountdown();
+tick();
 
-/* helper UI funcs */
-function updateStatus(msg) {
-  const el = document.getElementById("status");
-  if (el) el.innerText = msg;
-}
-
-function updateStatus(msg) {
-  const el = document.getElementById("status");
-  if (el) el.innerText = msg;
-}
-
-function updateTracker() {
-  const tracker = document.getElementById("status");
-  if (tracker) tracker.innerText = "📊 EMBR Sold Tracker: Coming soon...";
-}
-updateCountdown();
+/* ---------- wire buttons after DOM loaded ---------- */
+window.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("connectButton-browser").onclick = connectBrowser;
+  document.getElementById("connectButton-wc").onclick      = connectWalletConnect;
+  refreshSold(); setInterval(refreshSold, 60_000);
+});
 </script>
+
 <script>
 window.addEventListener('DOMContentLoaded', () => {
   const RATE  = 1000000;   // 1 ETH = 1 000 000 EMBR
