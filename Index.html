@@ -300,7 +300,7 @@ function updateCountdown() {
 async function connect () {
   try {
     /* WalletKit alone can spin-up the Core when you give it a projectId */
-    const walletKit = await window.WalletKit.init({
+     const walletKit = await window.WalletKit.init({
       projectId: "44f1b2ac5c89b529e5451a32217af2e4",
       chains:   [8453],                                // Base
       methods:  ["eth_sendTransaction","eth_sign"],
