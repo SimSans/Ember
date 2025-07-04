@@ -2,7 +2,13 @@
 <html lang="en">
 <head>
 
-<script src="https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2.12.0/dist/umd/index.min.js"></script>
+<!-- WalletConnect v2 – ESM build → promoted to global -->
+<script type="module">
+  import EthereumProvider from "https://unpkg.com/@walletconnect/ethereum-provider@2.12.0/dist/index.js";
+  // expose it so the rest of your code can call .init()
+  window.WalletConnectEthereumProvider = EthereumProvider;
+</script>
+
 
 
 
