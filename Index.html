@@ -293,7 +293,7 @@ function updateCountdown() {
   const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
   const s = Math.floor((distance % (1000 * 60)) / 1000);
 
-  countdownEl.innerHTML = `🔥 <strong>Presale begins in:</strong> ${d}d ${h}h ${m}m ${s}s`;
+  countdownEl.innerHTML = `🔥 <strong>Presale is LIVE for:</strong> ${d}d ${h}h ${m}m ${s}s`;
   setTimeout(updateCountdown, 1000);
 }
 
