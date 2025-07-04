@@ -158,35 +158,10 @@
 }
 
   </style>
- 
-<!--  keep this right before </head>  -->
+<!-- WalletConnect ESM bootstrap -->
 <script type="module">
   import { EthereumProvider } from "https://esm.sh/@walletconnect/ethereum-provider@2.12.0";
-  import { Web3Modal       } from "https://unpkg.com/@web3modal/html@2?module";
-
-  /* 1 ▸ WalletConnect provider (no internal UI) */
-  const wcProvider = await EthereumProvider.init({
-    projectId: "44f1b2ac5c89b529e5451a32217af2e4",
-    chains:    [8453],
-    showQrModal: false
-  });
-
-  /* 2 ▸ Polished Web3Modal popup */
-  const wcModal = new Web3Modal({
-    projectId: "44f1b2ac5c89b529e5451a32217af2e4",
-    chains:    [8453],
-    themeMode: "dark",
-    walletConnectProvider: wcProvider     // << ties them together
-  });
-
-  /* 3 ▸ One-time click-handler AFTER both objects exist */
-  document.getElementById("connectButton").addEventListener("click", async () => {
-    await wcModal.openModal();          // full-size popup
-    await wcProvider.connect();         // user approves in wallet
-
-    // you’re connected – wrap with ethers or call your buy logic
-    alert("✅ Wallet connected!");
-  });
+  window.WalletConnectEthereumProvider = EthereumProvider;
 </script>
 
 </head>
@@ -331,44 +306,32 @@ function updateCountdown() {
 
 async function connect() {
   try {
-    /* Lazy-load WC v2 ESM from Skypack (CORS-safe) */
-    if (!window.WalletConnectEthereumProvider) {
-      const mod = await import(
-        "https://esm.sh/@walletconnect/ethereum-provider@2.12.0"
-      );
-      window.WalletConnectEthereumProvider =
-        mod.default || mod.WalletConnectEthereumProvider || mod;
-    }
-
-    const wcProv = await window.WalletConnectEthereumProvider.init({
+    const wcProv = await WalletConnectEthereumProvider.init({
       projectId: "44f1b2ac5c89b529e5451a32217af2e4",
-      chains: [8453],                // Base Mainnet
+      chains: [8453],          // Base
       showQrModal: true
     });
     await wcProv.connect();
 
-    provider = new ethers.BrowserProvider(wcProv);
-    signer   = await provider.getSigner();
-
+    const provider = new ethers.BrowserProvider(wcProv);
+    signer  = await provider.getSigner();
     presale = new ethers.Contract(
       PRESALE_ADDRESS,
-      [
-        "function buyInstant() payable",
-        "function buyVested() payable",
-        "function claim()"
-      ],
+      ["function buyInstant() payable",
+       "function buyVested() payable",
+       "function claim()"],
       signer
     );
 
     updateStatus("✅ Connected: " + await signer.getAddress());
     document.getElementById("connect-wrap").style.display = "none";
     document.getElementById("presale-ui").style.display   = "block";
-
   } catch (err) {
-    console.error("WalletConnect error:", err);
+    console.error(err);
     updateStatus("❌ " + (err?.message || err));
   }
 }
+
 
 /* ------------  BUY FUNCTIONS  ------------ */
 async function buyInstant() {
