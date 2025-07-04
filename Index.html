@@ -306,7 +306,7 @@ async function connect() {
     /* Lazy-load WC v2 ESM from Skypack (CORS-safe) */
     if (!window.WalletConnectEthereumProvider) {
       const mod = await import(
-        "https://cdn.skypack.dev/@walletconnect/ethereum-provider@2.12.0"
+        "https://esm.sh/@walletconnect/ethereum-provider@2.12.0"
       );
       window.WalletConnectEthereumProvider =
         mod.default || mod.WalletConnectEthereumProvider || mod;
@@ -428,17 +428,6 @@ window.addEventListener('DOMContentLoaded', () => {
       `Vested (+15%) ⇒ <strong>${vested.toLocaleString()}</strong> EMBR`;
   });
 });
-</script>
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const wctype = typeof window.WalletConnectEthereumProvider;
-    // quick visual feedback:
-    document.body.insertAdjacentHTML(
-      "afterbegin",
-      `<div style="position:fixed;top:4px;left:4px;font:12px/14px monospace;`+
-      `background:#222;color:#0f0;padding:2px 4px;z-index:9999;">WC = ${wctype}</div>`
-    );
-  });
 </script>
 
 <script>
