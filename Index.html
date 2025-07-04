@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EMBER Presale</title>
@@ -180,7 +183,7 @@
     </p>
     <p style="margin-top: 1rem; font-size: 1.1rem; text-align: left;">
       📥 <strong>How to Participate:</strong><br>
-      1. Connect your wallet to the buy logic enther desired ETH to send.<br>
+      1. Connect your wallet to the buy logic. Enter desired ETH to send.<br>
       2. Choose your tier (Instant or Vested)<br>
       3. You're done!
     </p>
@@ -260,7 +263,7 @@ const PRESALE_ADDRESS = "0x5Cc848D9BB8ecc5Aa890C9C57562154589dccED4";
 const TOKEN_ADDRESS = "0xCe4eEc09fD89359a542035A60F38d9d23FdFbc19";
 let signer, presale, embr, provider;
 
-const claimStartTime = new Date("2025-07-06T12:00:00Z").getTime();
+const claimStartTime = new Date("2025-07-01T12:00:00Z").getTime();
 const countdownEl = document.getElementById("countdown");
 
 function updateCountdown() {
@@ -289,37 +292,55 @@ function updateCountdown() {
   const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
   const s = Math.floor((distance % (1000 * 60)) / 1000);
 
-  countdownEl.innerHTML = `🔥 <strong>Presale is LIVE for:</strong> ${d}d ${h}h ${m}m ${s}s`;
+  countdownEl.innerHTML = `🔥 <strong>Presale begins in:</strong> ${d}d ${h}h ${m}m ${s}s`;
   setTimeout(updateCountdown, 1000);
 }
 
 async function connect() {
   try {
-    if (!window.ethereum) throw new Error("No wallet detected");
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x2105' }] });
-    await provider.send("eth_requestAccounts", []);
-    signer = await provider.getSigner();
+    /* ----- 1. Try injected wallet (MetaMask / Rabby etc.) ----- */
+    if (window.ethereum) {
+      provider = new ethers.BrowserProvider(window.ethereum);
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: "0x2105" }],            // 0x2105 = Base main-net
+      });
+      await provider.send("eth_requestAccounts", []);
+    } else {
+      /* ----- 2. Fallback to WalletConnect QR / deep-link ----- */
+      const wcProv = new WalletConnectProvider.default({
+        rpc: { 8453: "https://mainnet.base.org" },  // chainId 8453 = Base
+        chainId: 8453,
+        qrcodeModalOptions: {
+          mobileLinks: ["metamask","trust","rabby","coinbase","rainbow"]
+        }
+      });
+      await wcProv.enable();                        // opens QR or deep-link
+      provider = new ethers.BrowserProvider(wcProv); // wrap for ethers
+    }
 
+    signer  = await provider.getSigner();
     presale = new ethers.Contract(PRESALE_ADDRESS, [
       "function buyInstant() payable",
       "function buyVested() payable",
       "function claim()"
     ], signer);
 
-    embr = new ethers.Contract(TOKEN_ADDRESS, [
+    embr    = new ethers.Contract(TOKEN_ADDRESS, [
       "function balanceOf(address) view returns (uint256)"
     ], provider);
 
-    updateStatus("✅ Connected successfully.");
+    updateStatus("✅ Connected: " + await signer.getAddress());
     document.getElementById("connect-wrap").style.display = "none";
-    document.getElementById("presale-ui").style.display = "block";
+    document.getElementById("presale-ui").style.display   = "block";
     refreshSold();
-  } catch (e) {
-    console.error("Connection failed:", e);
-    updateStatus("Connection failed: " + (e?.message || e));
+
+  } catch (err) {
+    console.error("Connection failed:", err);
+    updateStatus("❌ " + (err?.message || err));
   }
 }
+</script>
 
 async function buyInstant() {
   const amount = document.getElementById("ethAmount").value;
