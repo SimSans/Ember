@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-   <script src="https://unpkg.com/@walletconnect/core@2.13.3/dist/umd/index.js"></script>
-   <script src="https://unpkg.com/@reown/walletkit@1.0.10/dist/index.umd.js"></script>
+<!-- WalletConnect v2 Ethereum provider -->
+   <script src="https://unpkg.com/@walletconnect/ethereum-provider@2.12.0/dist/index.umd.js"></script>
+
 
 
   <meta charset="UTF-8" />
@@ -297,27 +298,17 @@ function updateCountdown() {
   setTimeout(updateCountdown, 1000);
 }
 
-async function connect () {
+async function connect() {
   try {
-    /* WalletKit alone can spin-up the Core when you give it a projectId */
-     const walletKit = await window.WalletKit.init({
-      projectId: "44f1b2ac5c89b529e5451a32217af2e4",
+    /*  initialise WC-v2 */
+    const wcProv = await window.WalletConnectEthereumProvider.init({
+      projectId: "44f1b2ac5c89b529e5451a32217af2e4",   // ← your WC cloud ID
       chains:   [8453],                                // Base
-      methods:  ["eth_sendTransaction","eth_sign"],
-      showQrModal: true,
-      metadata: {
-        name: "EMBER",
-        description: "EMBER Presale",
-        url: "https://embertoken.xyz",
-        icons: [
-          "https://raw.githubusercontent.com/SimSans/Ember/main/assets/Ember_Logo.png"
-        ]
-      }
+      showQrModal: true
     });
 
-    /* provider → ethers */
-    const wcProvider = await walletKit.getProvider();
-    provider = new ethers.BrowserProvider(wcProvider);
+    /* wrap in ethers */
+    provider = new ethers.BrowserProvider(wcProv);
     signer   = await provider.getSigner();
 
     presale  = new ethers.Contract(PRESALE_ADDRESS, [
@@ -431,7 +422,5 @@ async function refreshSold () {
 
 /* initial fetch + auto-refresh every 60 s */
 refreshSold();
-setInterval(refreshSold, 60_000);
-</script>
 setInterval(refreshSold, 60_000);
 </script>
