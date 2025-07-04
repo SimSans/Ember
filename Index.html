@@ -303,6 +303,7 @@ function updateCountdown() {
 
 async function connect() {
   try {
+    /* Lazy-load WC v2 ESM from Skypack (CORS-safe) */
     if (!window.WalletConnectEthereumProvider) {
       const mod = await import(
         "https://cdn.skypack.dev/@walletconnect/ethereum-provider@2.12.0"
@@ -313,53 +314,82 @@ async function connect() {
 
     const wcProv = await window.WalletConnectEthereumProvider.init({
       projectId: "44f1b2ac5c89b529e5451a32217af2e4",
-      chains: [8453],
+      chains: [8453],                // Base Mainnet
       showQrModal: true
     });
 
-    const provider = new ethers.BrowserProvider(wcProv);
-    const signer = await provider.getSigner();
+    provider = new ethers.BrowserProvider(wcProv);
+    signer   = await provider.getSigner();
 
     presale = new ethers.Contract(
-      "0x5Cc848D9BB8ecc5Aa890C9C57562154589dccED4",
-      ["function buyInstant() payable",
-       "function buyVested() payable",
-       "function claim()"],
+      PRESALE_ADDRESS,
+      [
+        "function buyInstant() payable",
+        "function buyVested() payable",
+        "function claim()"
+      ],
       signer
     );
 
     updateStatus("✅ Connected: " + await signer.getAddress());
     document.getElementById("connect-wrap").style.display = "none";
     document.getElementById("presale-ui").style.display   = "block";
-    refreshSold();
 
   } catch (err) {
-    console.error("WalletConnect-v2 error:", err);
+    console.error("WalletConnect error:", err);
     updateStatus("❌ " + (err?.message || err));
   }
 }
-async function buyVested() {
-  const amount = document.getElementById("ethAmount").value;
-  if (!amount || isNaN(amount)) return alert("Enter valid ETH amount");
+
+/* ------------  BUY FUNCTIONS  ------------ */
+async function buyInstant() {
+  const amt = document.getElementById("ethAmount").value;
+  if (!amt || isNaN(amt)) return alert("Enter a valid ETH amount");
   try {
-    const tx = await presale.buyVested({ value: ethers.parseEther(amount) });
+    const tx = await presale.buyInstant({ value: ethers.parseEther(amt) });
     await tx.wait();
-    alert("✅ Purchase successful (Vested)");
-  } catch (e) {
-    alert("❌ Transaction failed: " + (e?.message || e));
-  }
+    alert("✅ Purchase successful (Instant)");
+  } catch (e) { alert("❌ Tx failed: " + (e?.message || e)); }
 }
 
-/* 3. CLAIM */
+async function buyVested() {
+  const amt = document.getElementById("ethAmount").value;
+  if (!amt || isNaN(amt)) return alert("Enter a valid ETH amount");
+  try {
+    const tx = await presale.buyVested({ value: ethers.parseEther(amt) });
+    await tx.wait();
+    alert("✅ Purchase successful (Vested)");
+  } catch (e) { alert("❌ Tx failed: " + (e?.message || e)); }
+}
+
 async function claimTokens() {
   try {
     const tx = await presale.claim();
     await tx.wait();
     alert("✅ Claim successful");
-  } catch (e) {
-    alert("❌ Claim failed: " + (e?.message || e));
-  }
+  } catch (e) { alert("❌ Claim failed: " + (e?.message || e)); }
 }
+
+/* ------------  UI HELPERS  ------------ */
+function updateStatus(msg) {
+  const el = document.getElementById("status");
+  if (el) el.innerText = msg;
+}
+
+/* ------------  COUNTDOWN  ------------ */
+const claimStart = new Date("2025-07-06T12:00:00Z").getTime();
+const cdEl = document.getElementById("countdown");
+function updateCountdown() {
+  const now = Date.now(), d = claimStart - now;
+  if (d <= 0) { cdEl.innerHTML = "🚀 Claim phase LIVE"; return; }
+  const dd = Math.floor(d/864e5),
+        hh = Math.floor(d/36e5)%24,
+        mm = Math.floor(d/6e4)%60,
+        ss = Math.floor(d/1e3)%60;
+  cdEl.innerHTML = `🔥 Presale LIVE for: ${dd}d ${hh}h ${mm}m ${ss}s`;
+  setTimeout(updateCountdown, 1000);
+}
+updateCountdown();
 
 /* helper UI funcs */
 function updateStatus(msg) {
