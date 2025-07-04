@@ -299,32 +299,24 @@ function updateCountdown() {
 
 async function connect () {
   try {
-    /* 1. Build a WC core instance (projectId from walletconnect cloud) */
-    const core     = new window.WalletConnectCore.Core({
-      projectId: "44f1b2ac5c89b529e5451a32217af2e4"   // ← your ID
+    /* WalletKit alone can spin-up the Core when you give it a projectId */
+    const walletKit = await window.WalletKit.init({
+      projectId: "44f1b2ac5c89b529e5451a32217af2e4",
+      chains:   [8453],                                // Base
+      methods:  ["eth_sendTransaction","eth_sign"],
+      showQrModal: true,
+      metadata: {
+        name: "EMBER",
+        description: "EMBER Presale",
+        url: "https://embertoken.xyz",
+        icons: [
+          "https://raw.githubusercontent.com/SimSans/Ember/main/assets/Ember_Logo.png"
+        ]
+      }
     });
 
-    /* 2. App metadata (shown inside wallets) */
-    const metadata = {
-      name:        "EMBER",
-      description: "EMBER Presale",
-      url:         "https://embertoken.xyz",            // must match site
-      icons:       ["https://raw.githubusercontent.com/SimSans/Ember/main/assets/Ember_Logo.png"]
-    };
-
-    /* 3. Initialise WalletKit (opens QR / deep-link) */
-    const walletKit = await window.WalletKit.WalletKit.init({
-      core,
-      metadata,
-      chains:  [8453],                                  // Base main-net
-      methods: ["eth_sendTransaction","eth_sign","personal_sign"],
-      showQrModal: true
-    });
-
-    /* 4. Fetch an EIP-1193 provider from WalletKit */
-    const wcProvider = await walletKit.getProvider();    // same as window.ethereum
-
-    /* 5. Wrap it in ethers.js so your contract code still works */
+    /* provider → ethers */
+    const wcProvider = await walletKit.getProvider();
     provider = new ethers.BrowserProvider(wcProvider);
     signer   = await provider.getSigner();
 
@@ -334,17 +326,13 @@ async function connect () {
       "function claim()"
     ], signer);
 
-    embr     = new ethers.Contract(TOKEN_ADDRESS, [
-      "function balanceOf(address) view returns (uint256)"
-    ], provider);
-
     updateStatus("✅ Connected: " + await signer.getAddress());
     document.getElementById("connect-wrap").style.display = "none";
     document.getElementById("presale-ui").style.display   = "block";
     refreshSold();
 
   } catch (err) {
-    console.error("WalletConnect v2 failed:", err);
+    console.error("WalletConnect-v2 error:", err);
     updateStatus("❌ " + (err?.message || err));
   }
 }
