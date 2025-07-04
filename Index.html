@@ -301,10 +301,10 @@ function updateCountdown() {
 
 async function connect() {
   try {
-    /*  initialise WC-v2 */
-    const wcProv = await window.WalletConnectEthereumProvider.init({
-      projectId: "44f1b2ac5c89b529e5451a32217af2e4",   // ← your WC cloud ID
-      chains:   [8453],                                // Base
+    /*  WalletConnect v2  */
+    const wcProv = await window.EthereumProvider.init({   // ← change here
+      projectId: "44f1b2ac5c89b529e5451a32217af2e4",
+      chains:   [8453],          // Base
       showQrModal: true
     });
 
@@ -328,6 +328,7 @@ async function connect() {
     updateStatus("❌ " + (err?.message || err));
   }
 }
+
 
 /* 2. BUY INSTANT / VESTED  */
 async function buyInstant() {
