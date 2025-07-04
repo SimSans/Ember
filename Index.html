@@ -298,25 +298,24 @@ function updateCountdown() {
 
 async function connect() {
   try {
-    /* ----- 1. Try injected wallet (MetaMask / Rabby etc.) ----- */
     if (window.ethereum) {
       provider = new ethers.BrowserProvider(window.ethereum);
       await window.ethereum.request({
         method: "wallet_switchEthereumChain",
-        params: [{ chainId: "0x2105" }],            // 0x2105 = Base main-net
+        params: [{ chainId: "0x2105" }],            // Base main-net
       });
       await provider.send("eth_requestAccounts", []);
     } else {
-      /* ----- 2. Fallback to WalletConnect QR / deep-link ----- */
+      /* fallback: WalletConnect */
       const wcProv = new WalletConnectProvider.default({
-        rpc: { 8453: "https://mainnet.base.org" },  // chainId 8453 = Base
+        rpc: { 8453: "https://mainnet.base.org" },
         chainId: 8453,
         qrcodeModalOptions: {
           mobileLinks: ["metamask","trust","rabby","coinbase","rainbow"]
         }
       });
-      await wcProv.enable();                        // opens QR or deep-link
-      provider = new ethers.BrowserProvider(wcProv); // wrap for ethers
+      await wcProv.enable();
+      provider = new ethers.BrowserProvider(wcProv);
     }
 
     signer  = await provider.getSigner();
@@ -334,14 +333,13 @@ async function connect() {
     document.getElementById("connect-wrap").style.display = "none";
     document.getElementById("presale-ui").style.display   = "block";
     refreshSold();
-
   } catch (err) {
     console.error("Connection failed:", err);
     updateStatus("❌ " + (err?.message || err));
   }
 }
-</script>
 
+/* 2. BUY INSTANT / VESTED  */
 async function buyInstant() {
   const amount = document.getElementById("ethAmount").value;
   if (!amount || isNaN(amount)) return alert("Enter valid ETH amount");
@@ -353,7 +351,6 @@ async function buyInstant() {
     alert("❌ Transaction failed: " + (e?.message || e));
   }
 }
-
 async function buyVested() {
   const amount = document.getElementById("ethAmount").value;
   if (!amount || isNaN(amount)) return alert("Enter valid ETH amount");
@@ -366,6 +363,7 @@ async function buyVested() {
   }
 }
 
+/* 3. CLAIM */
 async function claimTokens() {
   try {
     const tx = await presale.claim();
@@ -374,6 +372,12 @@ async function claimTokens() {
   } catch (e) {
     alert("❌ Claim failed: " + (e?.message || e));
   }
+}
+
+/* helper UI funcs */
+function updateStatus(msg) {
+  const el = document.getElementById("status");
+  if (el) el.innerText = msg;
 }
 
 function updateStatus(msg) {
