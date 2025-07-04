@@ -303,25 +303,22 @@ function updateCountdown() {
 
 async function connect() {
   try {
-    /* 1 ▸ lazy-load WC v2 ESM (CORS-friendly CDN) */
     if (!window.WalletConnectEthereumProvider) {
       const mod = await import(
-        "https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2.12.0/dist/index.js"
+        "https://cdn.skypack.dev/@walletconnect/ethereum-provider@2.12.0"
       );
       window.WalletConnectEthereumProvider =
         mod.default || mod.WalletConnectEthereumProvider || mod;
     }
 
-    /* 2 ▸ initialise provider */
     const wcProv = await window.WalletConnectEthereumProvider.init({
-      projectId: "44f1b2ac5c89b529e5451a32217af2e4",  // ← your ID
-      chains:   [8453],                                // Base
+      projectId: "44f1b2ac5c89b529e5451a32217af2e4",
+      chains: [8453],
       showQrModal: true
     });
 
-    /* 3 ▸ wrap in ethers and continue exactly as before */
     const provider = new ethers.BrowserProvider(wcProv);
-    const signer   = await provider.getSigner();
+    const signer = await provider.getSigner();
 
     presale = new ethers.Contract(
       "0x5Cc848D9BB8ecc5Aa890C9C57562154589dccED4",
@@ -339,19 +336,6 @@ async function connect() {
   } catch (err) {
     console.error("WalletConnect-v2 error:", err);
     updateStatus("❌ " + (err?.message || err));
-  }
-}
-   
-/* 2. BUY INSTANT / VESTED  */
-async function buyInstant() {
-  const amount = document.getElementById("ethAmount").value;
-  if (!amount || isNaN(amount)) return alert("Enter valid ETH amount");
-  try {
-    const tx = await presale.buyInstant({ value: ethers.parseEther(amount) });
-    await tx.wait();
-    alert("✅ Purchase successful (Instant)");
-  } catch (e) {
-    alert("❌ Transaction failed: " + (e?.message || e));
   }
 }
 async function buyVested() {
