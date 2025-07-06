@@ -370,7 +370,7 @@ async function refreshSold() {
 }
 
 /* ---------- countdown ---------- */
-const claimStart = Date.parse("2025-07-06T12:00:00Z");
+const claimStart = Date.parse("2025-07-14T12:00:00Z");
 function tick() {
   const now = Date.now(), d = claimStart - now;
   if (d <= 0) { countdown.textContent = "🚀 Claim LIVE"; return; }
