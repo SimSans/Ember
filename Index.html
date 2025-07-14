@@ -9,7 +9,7 @@
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EMBER Presale</title>
+  <title>EMBER</title>
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
   <meta name="description" content="EMBER Token Presale – You don’t have to rise like a hero. You just have to rise.">
   <meta property="og:title" content="EMBER Token Presale" />
@@ -188,72 +188,16 @@
     <img src="https://raw.githubusercontent.com/SimSans/Ember/main/assets/Ember_Banner.png" alt="EMBER Banner">
   </div>
   <div class="container fade-in">
-    <h1>EMBER</h1>
-    <p><em>"You don’t have to rise like a hero. You just have to rise."</em></p>
-    <p>EMBER is a community-driven token forged in resilience. Secure your place in the fire early — choose your presale tier below and send ETH to the official presale wallet.</p>
-    <div class="wallet-box">
-      0x5Cc848D9BB8ecc5Aa890C9C57562154589dccED4
-    </div>
-    <p style="margin-top: 0.5rem; font-size: 0.95rem; color: #ff9999;">
-      ⚠️ <strong>Only use the official wallet listed above.</strong> We will never DM you for ETH.
-    </p>
-    <p style="margin-top: 1rem; font-size: 1.1rem; text-align: left;">
-      📥 <strong>How to Participate:</strong><br>
-      1. Connect your wallet to the buy logic. Enter desired ETH to send.<br>
-      2. Choose your tier (Instant or Vested)<br>
-      3. You're done!
-    </p>
-    <p style="margin-top: 1rem; font-size: 1.1rem; text-align: left;">
-      🔥 <strong>EMBR Sold:</strong> <span id="soldNow">0</span> / 100,000,000
-    </p>
-    <div class="options">
-      <div class="option">
-        <h3>⚡ Instant Access (No Bonus)</h3>
-        <p>Receive tokens immediately at launch — no vesting, no delay.</p>
-      </div>
-      <div class="option">
-        <h3>🕊️ Vested Access (+15% Bonus)</h3>
-        <p>Tokens unlock over 3 months starting at launch.</p>
-      </div>
-    </div>
-    <p style="margin-top: 1rem; font-size: 1.1rem; line-height: 1.6; text-align: left;">
-      📌 <strong>Presale Rate:</strong> 1 ETH = 1,000,000 EMBR<br>
-      💥 <strong>Total Presale Supply:</strong> 100,000,000 EMBR only<br>
-      ⛔️ First come, first filled — once the cap is reached, form will close and further ETH will be refunded.<br>
-      ✅ Presale is fully on-chain. Send ETH, select your tier, and you're done.
-    </p>
+  <p><em>"You don’t have to rise like a hero. You just have to rise."</em></p>
+  <p>Our presale has officially ended — but the real journey is just beginning. We are now shifting focus to growing the EMBER community. No new presale date has been set yet.</p>
+  <p>Follow us on Telegram and X to stay updated as we prepare for the next phase.</p>
+  <div class="wallet-box">
+    0x5Cc848D9BB8ecc5Aa890C9C57562154589dccED4
   </div>
-<p style="text-align:center; font-size:0.95rem; color:#ffcc00;">
-  ⚠️ On mobile, use WalletConnect or your wallet’s in-app browser.
-</p>
-
- <!-- Countdown -->
-<div id="countdown" class="fade-in">⏳ Countdown loading…</div>
-
-<div id="status" style="text-align:center;font-size:1rem;color:#ccc;"></div>
-
-<!-- 1️⃣  CONNECT  -->
-<div id="connect-wrap" style="text-align:center;margin-top:2rem;">
-  <button id="connectButton-browser" class="btn">Browser Wallet</button>
-  <button id="connectButton-wc"      class="btn">WalletConnect</button>
-</div>
-
-<!-- 2️⃣  PRESALE UI (hidden until connected) -->
-<div id="presale-ui" style="display:none;text-align:center;margin-top:2rem;">
-  <input type="number" id="ethAmount" placeholder="ETH amount" />
-  <p id="calcHint" style="margin:0.5rem 0 1rem;font-size:1rem;color:#ff7133;"></p>
-
-  <div class="options" style="align-items:center;">
-    <button class="btn" onclick="buyInstant()">Buy Instant</button>
-    <button class="btn" onclick="buyVested()">Buy Vested (+15%)</button>
+  <p style="margin-top: 0.5rem; font-size: 0.95rem; color: #ff9999;">
+    ⚠️ <strong>This is the official wallet. We will never DM you for ETH.</strong>
+  </p>
   </div>
-
-  <button class="btn" id="claimBtn" onclick="claimTokens()"
-          style="display:none;margin-top:2rem;">
-    Claim Vested
-  </button>
-</div>
-
   <footer class="fade-in">
     <h2>🧠 Why EMBER?</h2>
     <p>EMBER was born from the belief that crypto shouldn’t just be about charts — but about people. Those who stay through the fire. Those who don’t give up. EMBER is for them.</p>
@@ -282,164 +226,3 @@
       “Real fire never fears the storm. You are not alone — rise with us.”
     </p>
   </footer>
- <!-- ========= MAIN DAPP SCRIPT ========= -->
-<script>
-/* ---------- constants ---------- */
-const PRESALE_ADDRESS = "0x5Cc848D9BB8ecc5Aa890C9C57562154589dccED4";
-const SALE_ABI = [
-  "function buyInstant() payable",
-  "function buyVested() payable",
-  "function claim()",
-  "function totalSold() view returns (uint256)"
-];
-
-let provider, signer, presale;
-
-/* ---------- shared helpers ---------- */
-const statusEl   = document.getElementById("status");
-const soldSpan   = document.getElementById("soldNow");
-const connectUI  = document.getElementById("connect-wrap");
-const presaleUI  = document.getElementById("presale-ui");
-
-const setStatus  = (txt, ok=true) => {
-  statusEl.textContent = txt;
-  statusEl.style.color = ok ? "#00ff99" : "#ff6666";
-};
-
-/* ---------- injected-wallet connect ---------- */
-async function connectBrowser() {
-  if (!window.ethereum) return setStatus("❌ No injected wallet found", false);
-  try {
-    await window.ethereum.request({ method: "eth_requestAccounts" });
-    provider = new ethers.BrowserProvider(window.ethereum);
-    signer   = await provider.getSigner();
-
-    await ensureBase();               // switch/check network
-    initPresale();
-  } catch (err) { setStatus("❌ " + err.message, false); }
-}
-
-/* ---------- wallet-connect connect ---------- */
-async function connectWalletConnect() {
-  try {
-    const wcProv = await WalletConnectEthereumProvider.init({
-      projectId : "44f1b2ac5c89b529e5451a32217af2e4",
-      chains    : [8453],      // Base
-      showQrModal: true
-    });
-    await wcProv.connect();
-
-    provider = new ethers.BrowserProvider(wcProv);
-    signer   = await provider.getSigner();
-    initPresale();
-  } catch (err) { setStatus("❌ " + err.message, false); }
-}
-
-/* ---------- once connected ---------- */
-async function initPresale() {
-  presale = new ethers.Contract(PRESALE_ADDRESS, SALE_ABI, signer);
-  setStatus("✅ Connected: " + await signer.getAddress());
-  connectUI.style.display = "none";
-  presaleUI.style.display = "block";
-}
-
-/* ---------- buy / claim ---------- */
-async function buy(kind) {
-  const amt = parseFloat(document.getElementById("ethAmount").value);
-  if (!amt) return alert("Enter ETH amount");
-  try {
-    const fn = kind === "instant" ? presale.buyInstant : presale.buyVested;
-    const tx = await fn({ value: ethers.parseEther(String(amt)) });
-    await tx.wait();
-    alert("✅ Purchase successful");
-  } catch (e) { alert("❌ " + e.message); }
-}
-const buyInstant = () => buy("instant");
-const buyVested  = () => buy("vested");
-async function claimTokens() {
-  try { const tx = await presale.claim(); await tx.wait(); alert("✅ Claimed"); }
-  catch (e) { alert("❌ " + e.message); }
-}
-
-/* ---------- network guard ---------- */
-async function ensureBase() {
-  const { chainId } = await provider.getNetwork();
-  if (Number(chainId) !== 8453) {
-    throw new Error("Please switch to Base mainnet");
-  }
-}
-
-/* ---------- sold tracker ---------- */
-async function refreshSold() {
-  try {
-    const raw  = await presale.totalSold();
-    const sold = parseFloat(ethers.formatUnits(raw, 18));
-    soldSpan.textContent = sold.toLocaleString();
-  } catch { soldSpan.textContent = "—"; }
-}
-
-/* ---------- countdown ---------- */
-const claimStart = Date.parse("2025-07-14T12:00:00Z");
-function tick() {
-  const now = Date.now(), d = claimStart - now;
-  if (d <= 0) { countdown.textContent = "🚀 Claim LIVE"; return; }
-  const dd=Math.floor(d/864e5),hh=Math.floor(d/36e5)%24,
-        mm=Math.floor(d/6e4)%60, ss=Math.floor(d/1e3)%60;
-  countdown.textContent = `🔥 Presale LIVE for: ${dd}d ${hh}h ${mm}m ${ss}s`;
-  setTimeout(tick,1e3);
-}
-tick();
-
-/* ---------- wire buttons after DOM loaded ---------- */
-window.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("connectButton-browser").onclick = connectBrowser;
-  document.getElementById("connectButton-wc").onclick      = connectWalletConnect;
-  refreshSold(); setInterval(refreshSold, 60_000);
-});
-</script>
-
-<script>
-window.addEventListener('DOMContentLoaded', () => {
-  const RATE  = 1000000;   // 1 ETH = 1 000 000 EMBR
-  const BONUS = 0.15;      // +15 % for vested
-
-  const ethField  = document.getElementById('ethAmount');
-  const calcHint  = document.getElementById('calcHint');
-
-  ethField.addEventListener('input', () => {
-    const eth = parseFloat(ethField.value);
-    if (!eth || eth <= 0) { calcHint.textContent = ''; return; }
-
-    const instant = eth * RATE;
-    const vested  = instant * (1 + BONUS);
-
-    calcHint.innerHTML =
-      `Instant ⇒ <strong>${instant.toLocaleString()}</strong> EMBR&nbsp;&nbsp;|&nbsp;&nbsp;` +
-      `Vested (+15%) ⇒ <strong>${vested.toLocaleString()}</strong> EMBR`;
-  });
-});
-</script>
-
-<script>
-/* ---------- LIVE “EMBR sold” tracker ---------- */
-const SOLD_RPC  = "https://mainnet.base.org";     // Base main-net public RPC
-const soldProv  = new ethers.JsonRpcProvider(SOLD_RPC);
-const soldAbi   = ["function totalSold() view returns (uint256)"];
-const soldCtr   = new ethers.Contract(PRESALE_ADDRESS, soldAbi, soldProv);
-const soldSpan  = document.getElementById("soldNow");
-
-async function refreshSold () {
-  try {
-    const raw   = await soldCtr.totalSold();          // uint256
-    const sold  = parseFloat(ethers.formatUnits(raw, 18));
-    soldSpan.textContent = sold.toLocaleString();
-  } catch (err) {
-    console.error("Sold-tracker error:", err);
-    soldSpan.textContent = "—";
-  }
-}
-
-/* initial fetch + auto-refresh every 60 s */
-refreshSold();
-setInterval(refreshSold, 60_000);
-</script>
