@@ -11,9 +11,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EMBER</title>
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
-  <meta name="description" content="EMBER Token Presale – You don’t have to rise like a hero. You just have to rise.">
-  <meta property="og:title" content="EMBER Token Presale" />
-  <meta property="og:description" content="You don’t have to rise like a hero. You just have to rise. Join the EMBER presale today." />
+  <meta name="description" content="EMBER — The world's first emotional token. Built not for hype, but for those who rise through fire.">
+  <meta property="og:title" content="EMBER | Rise Through Fire" />
+  <meta property="og:description" content="The presale is over — the movement has just begun. EMBER is for those who refuse to give up." />
   <meta property="og:image" content="https://raw.githubusercontent.com/SimSans/Ember/main/assets/Ember_Banner.png" />
   <meta property="og:url" content="https://embertoken.xyz" />
   <style>
@@ -31,6 +31,11 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: #0b0c10;
       color: #f1f1f1;
+      background-image: url('https://raw.githubusercontent.com/SimSans/Ember/main/assets/ember_bg_texture.jpg');
+background-size: cover;
+background-position: center;
+background-repeat: no-repeat;
+background-attachment: fixed;
     }
     .fade-in {
       animation: fadeIn 2s ease-in forwards;
@@ -165,6 +170,33 @@
   box-shadow: 0 3px 8px rgba(255, 113, 51, 0.4);
 }
 
+@keyframes flamePulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(255, 113, 51, 0.3); }
+  50% { box-shadow: 0 0 24px rgba(255, 113, 51, 0.6); }
+}
+
+.btn.flame {
+  animation: flamePulse 2s infinite ease-in-out;
+}
+
+@media (max-width: 600px) {
+  .btn {
+    width: 90%;
+    display: inline-block;
+    text-align: center;
+  }
+
+  .container {
+    padding: 1rem;
+  }
+
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+    
   </style>
 <!-- WalletConnect ESM bootstrap -->
 <script type="module">
@@ -188,41 +220,38 @@
     <img src="https://raw.githubusercontent.com/SimSans/Ember/main/assets/Ember_Banner.png" alt="EMBER Banner">
   </div>
   <div class="container fade-in">
-  <p><em>"You don’t have to rise like a hero. You just have to rise."</em></p>
-  <p>Our presale has officially ended — but the real journey is just beginning. We are now shifting focus to growing the EMBER community. No new presale date has been set yet.</p>
-  <p>Follow us on Telegram and X to stay updated as we prepare for the next phase.</p>
-  <div class="wallet-box">
-    0x5Cc848D9BB8ecc5Aa890C9C57562154589dccED4
-  </div>
-  <p style="margin-top: 0.5rem; font-size: 0.95rem; color: #ff9999;">
-    ⚠️ <strong>This is the official wallet. We will never DM you for ETH.</strong>
-  </p>
+ <p><em>"You don’t have to rise like a hero. You just have to rise."</em></p>
+ <p>Our presale is temporarily closed...but EMBER is not gone. We’re building something deeper. This isn’t just another crypto. This is a movement for the ones who refuse to give up.</p>
+ <p>We're taking time to grow the community before relaunching. If you've ever felt like the world was too much...EMBER was made for you. Come be part of the fire.</p>
+
+<a class="btn flame" href="https://t.me/embertokentg" target="_blank">Join the Telegram</a>
   </div>
   <footer class="fade-in">
     <h2>🧠 Why EMBER?</h2>
     <p>EMBER was born from the belief that crypto shouldn’t just be about charts — but about people. Those who stay through the fire. Those who don’t give up. EMBER is for them.</p>
     <h2>📈 Roadmap</h2>
-    <ul>
-      <li><strong>🔥 Phase I — Launch:</strong> Token goes live on Base. Presale tokens distributed. Liquidity added.</li>
-      <li><strong>💬 Phase II — Community:</strong> Twitter/X growth, Telegram raids, meme movement and engagement campaigns.</li>
-      <li><strong>🚀 Phase III — Expansion Fund:</strong> Presale funds allocated to expand listings, marketing, and long-term ecosystem sustainability. Strategic LP adds and future listings.</li>
-      <li><strong>🕸️ Phase IV — Growth:</strong> CEX listings, partnerships, possible DAO discussions, and project utility exploration.</li>
-    </ul>
+<ul>
+  <li><strong>🔥 Phase I — Ignition:</strong> EMBER is born. Presale begins. Core foundation and early supporters gather.</li>
+  <li><strong>💬 Phase II — Community Building:</strong> We focus on growth, bonding, emotional outreach, and expanding awareness.</li>
+  <li><strong>🚪 Phase III — Presale Reopens:</strong> Once the fire is strong enough, the presale resumes — with new energy and new faces.</li>
+  <li><strong>🚀 Phase IV — Launch:</strong> Liquidity is added. Tokens are distributed. EMBER goes live on Base and begins trading.</li>
+  <li><strong>🌱 Phase V — Expansion:</strong> Listings, partnerships, possible DAO evolution, and long-term ecosystem planning.</li>
+</ul>
     <h2>🔐 Why Trust EMBER?</h2>
-    <ul>
-      <li>✔️ Verified contract on Base (open-source)</li>
-      <li>✔️ No minting, no taxes, no stealth functions</li>
-      <li>✔️ Transparent GitHub and whitepaper</li>
-      <li>✔️ ETH-only presale — contracted , fair, and honest</li>
-      <li>✔️ Vested option rewards long-term belief</li>
-    </ul>
+<ul>
+  <li>✔️ Verified contract on Base...100% open-source</li>
+  <li>✔️ No stealth functions, taxes, or minting...ever!</li>
+  <li>✔️ Transparent whitepaper, GitHub, and roadmap</li>
+  <li>✔️ ETH-only presale — no tokens sold yet, no rug risk</li>
+  <li>✔️ Ownership will be renounced once liquidity is added — no hidden control</li>
+</ul>
     <div class="socials">
       <h2>📣 Join the Movement</h2>
       <a href="https://t.me/embertokentg" target="_blank">Telegram</a>
       <a href="https://x.com/Ember2110" target="_blank">Twitter/X</a>
       <a href="https://github.com/SimSans/Ember" target="_blank">GitHub</a>
     </div>
-    <p style="margin-top: 3rem; font-style: italic; font-size: 1.1rem; color: #ccc;">
-      “Real fire never fears the storm. You are not alone — rise with us.”
+    <p style="margin-top: 3rem; font-family: 'Georgia', serif; font-style: italic; font-size: 1.2rem; color: #ffcc99; text-align: center;">
+  “Real fire never fears the storm. You are not alone — rise with us.”
     </p>
   </footer>
